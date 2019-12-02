@@ -14,10 +14,10 @@ print(age_null_count)   # 打印数量  共177个
 # 计算年龄均值
 mean_age =sum(titanic_survival["Age"]) / len(titanic_survival["Age"])
 print(mean_age)  # 因为有缺失值，所以无法计算
-#
-# good_ages = titanic_survival["Age"][age_is_null == False]   # 获取年龄不缺失的
-# correct_mean_age = sum(good_ages) / len(good_ages)
-# print(correct_mean_age) # 计算结果29.
+
+good_ages = titanic_survival["Age"][age_is_null == False]   # 获取年龄不缺失的
+correct_mean_age = sum(good_ages) / len(good_ages)
+print(correct_mean_age) # 计算结果29.
 
 # 求均值，但是不是个好方法，直接忽略缺失值
 correct_mean_age = titanic_survival["Age"].mean()
@@ -49,5 +49,29 @@ drop_na_columns = titanic_survival.dropna(axis=1)
 new_titanic_survival = titanic_survival.dropna(axis =0,subset=["Age", "Sex"])
 
 # 获取某一个值
-row_index_83_age = titanic_survival.loc[83,"Age"]
+row_index_83_age = titanic_survival.loc[83, "Age"]
 print(row_index_83_age)
+
+new_titanic_survival2 = titanic_survival.sort_values("Age", ascending=False)    # 新的数据按照Age升序排序
+print(new_titanic_survival2[0:10])
+titanic_reindexed = new_titanic_survival2.reset_index(drop=True)    # 重新建立索引值，drop=True的意思是原来的索引不要了
+print('---------')
+print(titanic_reindexed.loc[0:10])
+
+# 年龄连续值离散化
+def generate_age_label(row):
+    age = row["Age"]
+    if pd.isnull(age):
+        return "unknown"
+    elif age < 18:
+        return "minor"
+    else:
+        return "adult"
+age_labels = titanic_survival.apply(generate_age_label,axis=1)
+print(age_labels)
+# 想求得 成年人，未成年人获救的均值
+titanic_survival['age_labels'] = age_labels     # 把minor,adult和unknown作为一个新的列加入到数据中
+age_group_survial = titanic_survival.pivot_table(index="age_labels", values="Survived",aggfunc=np.mean)
+print(age_group_survial)
+
+
